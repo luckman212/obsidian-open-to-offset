@@ -9,7 +9,7 @@ Right now this is primarily useful as a companion to [Omnisearch][1], since thos
 For now, install must be done manually.
 
 1. Download and unzip the latest [release][2]
-2. Place the expanded folder in your `.plugins` directory
+2. Place the expanded folder in your `.obsidian/plugins` directory
 3. Enable the plugin in Settings → Community plugins
 
 ## How to use

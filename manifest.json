@@ -1,7 +1,7 @@
 {
 	"id": "obsidian-open-to-offset",
 	"name": "Open to Offset",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"minAppVersion": "1.0.0",
 	"description": "Adds a protocol handler to open a file to a specific offset.",
 	"author": "luckman212",

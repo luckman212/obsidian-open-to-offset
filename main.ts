@@ -1,5 +1,6 @@
 // https://docs.obsidian.md/Reference/TypeScript+API/Editor/scrollIntoView
 // https://forum.obsidian.md/t/command-line-interface-to-open-files-folders-in-obsidian-from-the-terminal/860/25
+// look at codemirror.js and search for 'SCROLLING THINGS INTO VIEW'
 
 // usage: open 'obsidian://open-to-offset?file=foo.md&offset=1234'
 
@@ -27,17 +28,21 @@ export default class OpenToOffsetPlugin extends Plugin {
 					}
 					this.app.workspace.openLinkText('', params.file)
 					.then(async () => {
-						var cmEditor = this.getEditor();
-						if (params.offset) {
-							const wantPos = parseInt(params.offset);
-							const maxPos = cmEditor.posToOffset({ch:0, line: cmEditor.lastLine()});
-							await cmEditor.setCursor(0, (wantPos <= maxPos ? wantPos : maxPos));
-							await cmEditor.scrollIntoView({
-								from: cmEditor.getCursor('from'),
-								to: cmEditor.getCursor('to')},
-								true);
+						var cmEditor = await this.getEditor();
+						if (cmEditor) {
+							if (params.offset) {
+								const wantPos = parseInt(params.offset);
+								const maxPos = cmEditor.posToOffset({ch:0, line: cmEditor.lastLine()});
+								await cmEditor.setCursor(0, (wantPos <= maxPos ? wantPos : maxPos));
+								await cmEditor.scrollIntoView({
+									from: cmEditor.getCursor('from'),
+									to: cmEditor.getCursor('to')},
+									true);
+							}
+							cmEditor.focus();
+						} else {
+							console.log('failed to obtain cmEditor reference');
 						}
-						cmEditor.focus();
 					});
 				} else {
 					console.log(`No path specified for ${actionName}`);
@@ -50,13 +55,23 @@ export default class OpenToOffsetPlugin extends Plugin {
 		console.log(`Unloading ${pluginName} plugin`);
 	}
 
-	getEditor() {
-		var view = this.app.workspace.activeLeaf.view;
-		if (view.getViewType() == 'markdown') {
-			var markdownView = view as MarkdownView;
-			var cmEditor = markdownView.sourceMode.cmEditor;
+	async getEditor() {
+		const activeLeaf = this.app.workspace.activeLeaf;
+		if (activeLeaf && activeLeaf.view instanceof MarkdownView) {
+			const view = activeLeaf.view as MarkdownView;
+			//@ts-ignore
+			const modes = view.modes;
+			if (!modes) {
+				return;
+			}
+			//@ts-ignore
+			view.setMode(modes['source']);
+			//@ts-ignore
+			const cmEditor = view.sourceMode.cmEditor;
 			return cmEditor;
+		} else {
+			console.log("Could not set view of active leaf to Source mode");
+			return;
 		}
-		return null;
 	}
 }
